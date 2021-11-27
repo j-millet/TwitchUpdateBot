@@ -1,0 +1,4 @@
+```
+*help - yeah.
+*showsubs - shows a list of subscriptions.
+```

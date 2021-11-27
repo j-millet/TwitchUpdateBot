@@ -1,0 +1,10 @@
+```
+*help - yeah.
+*showsubs - shows a list of subscriptions
+
+*add <twitch username> - adds a user to subscriptions.
+*remove <twitch username> - removes a user from subscriptions
+*change_alert_channel - Changes the default channel alerts appear on.
+
+If the bot doesn't send any alerts, despite subscribed users streaming it may not have the necessary permissions to do that. The default alert channel is the highest in UI view.
+```
