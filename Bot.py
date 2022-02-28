@@ -1,3 +1,4 @@
+from unicodedata import name
 from discord.ext import commands
 import requests
 import os
@@ -5,14 +6,14 @@ import asyncio
 from Authentication import Authentication
 import GuildFileManager 
 
-def path(filename): #returns whole path to a file (must be in the same folder as code), needed for raspb
+def path(filename): #returns whole path to a file (must be in the same folder as code), needed for linux
     return f"{os.path.dirname(__file__)}\{filename}"
 
 bot = commands.Bot(command_prefix="*")
 bot.remove_command('help')
 auth = Authentication()
 
-def user_exists(name)->bool:
+def user_exists(name:str)->bool:    #check if user with name exists
     headers = {
         'Client-Id': auth.client_id,
         'Authorization': auth.get_oauth(),
@@ -24,7 +25,7 @@ def user_exists(name)->bool:
     return response.json()["data"] != []
 
 
-def is_live(name)->bool: #check live status of a single channel
+def is_live(name:str)->bool: #check live status of a single channel
     headers = {
         'Client-Id': auth.client_id,
         'Authorization': auth.get_oauth(),
@@ -35,13 +36,11 @@ def is_live(name)->bool: #check live status of a single channel
     response = requests.get('https://api.twitch.tv/helix/streams?',headers=headers, params=params)
     return response.json()['data'] != []
 
-
 @bot.command(name="help")
-async def read_commands(ctx,*ver):
+async def read_commands(ctx,*ver):  #sends the contents of selected help file: help.txt for basics, help_extra.txt for commands with privileges needed
     helpfile = "help_extra.txt" if (len(ver)>0 and ver[0]=="adv") else "help.txt"
     with open(path(helpfile)) as f:
         await ctx.channel.send(f.read())
-
 
 @bot.command(name="remove")
 async def remove_sub(ctx,*arg):     #remove n channels from a server's follower list
@@ -100,7 +99,7 @@ async def add_sub(ctx, *arg):       #add n channels to a server's follower list
     await ctx.channel.send(s)
 
 @bot.command(name="showsubs")
-async def show_subscribers(ctx):
+async def show_subscribers(ctx):    #sends a list of channels the server is subscribed to
     subs = GuildFileManager.access_sub_file(ctx.guild)['subscriptions']
 
     nl = '\n'
