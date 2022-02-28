@@ -9,4 +9,4 @@ tempCodeRunnerFile.python
 servers/
 .history/
 .idea/
-__pycache__/
+.pycache/

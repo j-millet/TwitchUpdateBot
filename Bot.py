@@ -1,13 +1,9 @@
 from unicodedata import name
 from discord.ext import commands
 import requests
-import os
-import asyncio
 from Authentication import Authentication
 import GuildFileManager 
 
-def path(filename): #returns whole path to a file (must be in the same folder as code), needed for linux
-    return f"{os.path.dirname(__file__)}\{filename}"
 
 bot = commands.Bot(command_prefix="*")
 bot.remove_command('help')
@@ -39,7 +35,7 @@ def is_live(name:str)->bool: #check live status of a single channel
 @bot.command(name="help")
 async def read_commands(ctx,*ver):  #sends the contents of selected help file: help.txt for basics, help_extra.txt for commands with privileges needed
     helpfile = "help_extra.txt" if (len(ver)>0 and ver[0]=="adv") else "help.txt"
-    with open(path(helpfile)) as f:
+    with open(GuildFileManager.path(helpfile)) as f:
         await ctx.channel.send(f.read())
 
 @bot.command(name="remove")
