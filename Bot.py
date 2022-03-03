@@ -1,36 +1,48 @@
-from unicodedata import name
 from discord.ext import commands
-import requests
+import discord
 from Authentication import Authentication
-import GuildFileManager 
+import GuildFileManager
+import API_Calls as helix
+import json
 
-
-bot = commands.Bot(command_prefix="*")
+intents = discord.Intents().all()
+bot = commands.Bot(command_prefix="*", intents=intents)
 bot.remove_command('help')
 auth = Authentication()
 
-def user_exists(name:str)->bool:    #check if user with name exists
-    headers = {
-        'Client-Id': auth.client_id,
-        'Authorization': auth.get_oauth(),
-    }
-    params = (
-        ('login', name),
-    )
-    response = requests.get('https://api.twitch.tv/helix/users?',headers=headers, params=params)
-    return response.json()["data"] != []
+async def check_sub_list():
+    accounts = []
+    guilds = []
+    with open(GuildFileManager.path("servers.json")) as f:
+        guilds = json.loads(f.read())
+        for guild in guilds:
+            subs = GuildFileManager.access_sub_file(bot.get_guild(guild))
+            accounts.extend(subs['subscriptions'].keys())
+
+    acc_dict = dict.fromkeys(accounts,False)
+    for key in acc_dict:
+        acc_dict[key] = helix.is_live(key)
+    
+    for guild in guilds:
+        g_ref = bot.get_guild(guild)
+        data = GuildFileManager.access_sub_file(g_ref)
+        subs = data['subscriptions']
+        channel = bot.get_channel(data['def-channel'])
+        for sub in subs:
+            if acc_dict[sub] == True:
+                if subs[sub] == False:
+                    subs[sub] = True
+                    await channel.send(f"https://www.twitch.tv/{sub}")
+            else:
+                subs[sub] = False
+        data["subscriptions"] = subs
+        print(data)
+        GuildFileManager.write_sub_file(g_ref,data)
 
 
-def is_live(name:str)->bool: #check live status of a single channel
-    headers = {
-        'Client-Id': auth.client_id,
-        'Authorization': auth.get_oauth(),
-    }
-    params = (
-        ('user_login', name),
-    )
-    response = requests.get('https://api.twitch.tv/helix/streams?',headers=headers, params=params)
-    return response.json()['data'] != []
+@bot.command(name="test")
+async def test(ctx,*arg):
+    await check_sub_list()
 
 @bot.command(name="help")
 async def read_commands(ctx,*ver):  #sends the contents of selected help file: help.txt for basics, help_extra.txt for commands with privileges needed
@@ -81,7 +93,7 @@ async def add_sub(ctx, *arg):       #add n channels to a server's follower list
     succesful,failed = [],[]
     for name in arg:
         name = name.lower()
-        if user_exists(name) and (not subscriptions.__contains__(name)):
+        if helix.user_exists(name) and (not subscriptions.__contains__(name)):
             subscriptions[name] = False
             succesful.append(name)
         else:
@@ -102,4 +114,23 @@ async def show_subscribers(ctx):    #sends a list of channels the server is subs
     s = f"```This server is following: {nl}{''.join([f'->{x}{nl}' for x in subs])}```" if len(subs)>0 else "This server is not following any channel."
     await ctx.channel.send(s)
 
+@bot.command(name="showpriv")
+async def show_subscribers(ctx):    #sends a list of channels the server is subscribed to
+    subs = GuildFileManager.access_sub_file(ctx.guild)['privileged']
+
+    nl = '\n'
+    s = f"```Privileged: {nl}{''.join([f'->{ctx.guild.get_member(x).name}{nl}' for x in subs])}```" if len(subs)>0 else "This server is not following any channel."
+    await ctx.channel.send(s)
+
+
+
+#TODO commands to add, remove privileged users
+#TODO command to change def-channel
+
+
+@bot.event
+async def on_guild_remove(guild):
+    GuildFileManager.delete_sub_file(guild)
+
 bot.run(auth.token)
+bot.wait_until_ready()
