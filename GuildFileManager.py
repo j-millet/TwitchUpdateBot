@@ -7,7 +7,7 @@ def path(filename): #returns whole path to a file (must be in the same folder as
 
 def write_sub_file(guild:discord.guild,data:dict)->None:#writes data to guild file, creates file if there isn't one
     p = path(f"servers\{guild.id}subs.json")
-    with open("servers.json","r+") as f:
+    with open(path("servers.json"),"r+") as f:
         arr = json.loads(f.read())
         if not arr.__contains__(guild.id): arr.append(guild.id)
         f.seek(0)
@@ -21,7 +21,13 @@ def write_sub_file(guild:discord.guild,data:dict)->None:#writes data to guild fi
 def delete_sub_file(guild:discord.guild)->bool: #removes guild file
     p = path(f"servers\{guild.id}subs.json")
     if not os.path.exists(p): return False
-    os.remove(p)
+    os.remove(p) #TODO: add removal from servers.json !!!!!!!!!!!!
+    with open(path("servers.json"),"r+") as f:
+        arr = json.loads(f.read())
+        if arr.__contains__(guild.id): arr.pop(arr.index(guild.id))
+        f.seek(0)
+        f.write(json.dumps(arr))
+        f.truncate()
     return True
 
 def access_sub_file(guild:discord.guild)->dict:  #returns guild-file data, creates file if there isn't one

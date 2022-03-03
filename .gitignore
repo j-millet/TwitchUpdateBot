@@ -3,6 +3,7 @@ servers.json
 oauth.json
 
 Main.py
+logs.py
 
 tempCodeRunnerFile.python
 
