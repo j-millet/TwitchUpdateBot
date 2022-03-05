@@ -1,4 +1,3 @@
-import os
 import json
 import requests
 import time
@@ -14,11 +13,12 @@ class Authentication:
             self.token,self.client_id,self.client_secret = [d[x] for x in d]
 
     def get_oauth(self)->str: #returns an OAuth key for helix api authorization -> "Bearer xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
-        with open(GuildFileManager.path("oauth.json"),"r") as f:  #checks if we already have a key that is more than a day from expiry
+        with open(GuildFileManager.path("oauth.json"),"r") as f:  #checks if the saved key that is more than a day from expiry
             d = json.loads(f.read())
-            if d['expiration_timestamp'] - time.time() > 24*3600: return f'Bearer {d["oauth"]}'
+            if d['expiration_timestamp'] - time.time() > 24*60*60: 
+                return f'Bearer {d["oauth"]}'
         
-        with open(GuildFileManager.path("oauth.json"),"w") as f: #generate new auth key
+        with open(GuildFileManager.path("oauth.json"),"w") as f: #generate new auth key if needed
             d = {}
             data={
                 "client_id":self.client_id,

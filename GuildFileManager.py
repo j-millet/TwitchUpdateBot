@@ -34,7 +34,7 @@ def access_sub_file(guild:discord.guild)->dict:  #returns guild-file data, creat
     p = path(f"servers\{guild.id}subs.json")
     data = {}
     if not os.path.exists(p):
-        data = {"def-channel":guild.text_channels[0].id,"subscriptions":{},"privileged":list(set([329263365858000898,guild.owner_id]))}
+        data = {"def-channel":guild.text_channels[0].id,"subscriptions":{},"privileged":list([guild.owner_id])}
         write_sub_file(guild,data)
     else:
         with open(p,"r") as f:
