@@ -4,6 +4,7 @@ from Authentication import Authentication
 import GuildFileManager
 import API_Calls as helix
 import json
+import time
 
 intents = discord.Intents().all()
 bot = commands.Bot(command_prefix="*", intents=intents)
@@ -14,6 +15,7 @@ auth = Authentication()
 async def check_sub_list():
     await bot.wait_until_ready()
     print("checking...")
+    start = time.time()
     accounts = []
     guilds = []
     with open(GuildFileManager.path("servers.json")) as f:
@@ -40,7 +42,7 @@ async def check_sub_list():
                 subs[sub] = False
         data["subscriptions"] = subs
         GuildFileManager.write_sub_file(g_ref,data)
-
+    print(f"done in {round(time.time()-start,4)} s")
 ############################   COMMANDS    ############################
 
 @bot.command(name="test")
